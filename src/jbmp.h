@@ -29,11 +29,14 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b);
 int jbmp_write_bmp_file(const char* fname, jbmp_header_t* header, jbmp_bitmap_t* bitmap);
 
 // bitmap ops
-int init_bitmap_struct(jbmp_bitmap_t* bitmap, jbmp_header_t* header);
+int init_bitmap_struct(jbmp_bitmap_t* bitmap, int w, int h);
 
 jbmp_pixel_t jbmp_get_pixel(jbmp_bitmap_t* b, int x, int y);
 
 int jbmp_put_pixel(jbmp_bitmap_t* b, int x, int y, jbmp_pixel_t p);
+
+int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, uint8_t v);
+uint8_t jbmp_get_pixel_channel(jbmp_pixel_t p, jbmp_rgb_t channel);
 
 
 

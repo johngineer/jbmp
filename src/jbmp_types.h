@@ -1,15 +1,24 @@
 #ifndef JBMP_TYPES_H
 #define JBMP_TYPES_H
 
+#include <inttypes.h>
+
 // these structs do not use inttypes.h types, so that they can interface
 // directly with pre-C99 code without recasting
+
+typedef enum jbmp_rgb_t
+{
+  blue,
+  green,
+  red 
+} jbmp_rgb_t;
 
 // 3-channel pixel structure
 typedef struct jbmp_pixel_t
 {
-  unsigned char b;
-  unsigned char g;
-  unsigned char r;
+  uint8_t b;
+  uint8_t g;
+  uint8_t r;
   
 } jbmp_pixel_t;
 
@@ -17,10 +26,10 @@ typedef struct jbmp_pixel_t
 // 'bitmap' is an array of 3-channel pixels
 typedef struct jbmp_bitmap_t
 {
-  uint32_t width;
-  uint32_t height;
-  uint32_t size;        // in pixels
-  uint32_t size_bytes;  //
+  int width;
+  int height;
+  int size;        // in pixels
+  int size_bytes;  //
   jbmp_pixel_t* bitmap;
   
 } jbmp_bitmap_t;

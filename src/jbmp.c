@@ -153,7 +153,7 @@ int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
   // now that we have the dimensions of the bitmap, we can initialize a
   // bitmap struct with those parameters
   // jd_tag(mesg,1,"allocating memory for bitmap, %i bytes requested.", size_of_bitmap);
-  c = init_bitmap_struct(bitmap, &header);
+  c = init_bitmap_struct(bitmap, header.width, header.height);
 
   // reopen the file and move the file position to the bitmap data
   // (we don't care about palette stuff -- life in truecolor, baby!)
@@ -203,11 +203,11 @@ int jbmp_write_bmp_file(const char* fname, jbmp_header_t* header, jbmp_bitmap_t*
 }
 
 // BITMAP OPS
-int init_bitmap_struct(jbmp_bitmap_t* b, jbmp_header_t* h)
+int init_bitmap_struct(jbmp_bitmap_t* b, int w, int h)
 {
-  b->width = h->width;
-  b->height = h->height;
-  b->size = (b->width * b->height);
+  b->width = w;
+  b->height = h;
+  b->size = (w * h);
   b->size_bytes = (b->size * sizeof(jbmp_pixel_t));
   
   b->bitmap = calloc(b->size, sizeof(jbmp_pixel_t));
