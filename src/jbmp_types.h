@@ -31,18 +31,20 @@ typedef struct jbmp_bitmap_t
   int size;        // in pixels
   int size_bytes;  //
   jbmp_pixel_t* bitmap;
-  
+  char* filename;
+
 } jbmp_bitmap_t;
 
 // the header we read in to verify and learn more about the .BMP file
 // this struct uses inttypes.h types because specific bit-width is required.
 typedef struct jbmp_header_t
 {
-  char magic[2];
+  uint8_t magic[2];
+  //uint16_t magic;
   uint32_t size_of_bmp;
-  uint16_t resd1;
-  uint16_t resd2;
+  uint32_t resd1;
   uint32_t bitmap_offset;
+  
   uint32_t size_of_header;
   uint32_t width;
   uint32_t height;

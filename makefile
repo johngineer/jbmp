@@ -15,7 +15,7 @@
 # if the demo program compiles, then the library has been correctly
 # installed.
 
-libname := libjbmp
+libname := jbmp
 
 obj := ./obj/
 
@@ -33,7 +33,7 @@ opts := -c -g -std=c99
 
 # builds the library archive from the object files
 libjbmp: $(ofiles)
-				ar rcs $(libname).a $(obj)*.o
+				ar rcs lib$(libname).a $(obj)*.o
 
 pathcheck: $(obj) $(mesg)
 				rmdir $(obj)
