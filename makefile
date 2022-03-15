@@ -49,6 +49,8 @@ jbmp.o: $(src)jbmp.c $(src)jbmp.h $(src)jbmp_types.h
 clean:
 				rm -rf $(obj)*
 				rm -rf $(mesg)*
+				rm -rf *.bmp
+				rm -rf *.a
 				
 # PREFIX is environment variable, but if it is not set, then set default value
 ifeq ($(PREFIX),)
