@@ -1,3 +1,9 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                          *
+*    jbmp: for reading and writing 24bpp .BMP image files.                 *
+*                                                                          *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef JBMP_H
 #define JBMP_H
 

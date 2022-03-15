@@ -40,7 +40,6 @@ typedef struct jbmp_bitmap_t
 typedef struct jbmp_header_t
 {
   uint8_t magic[2];
-  //uint16_t magic;
   uint32_t size_of_bmp;
   uint32_t resd1;
   uint32_t bitmap_offset;

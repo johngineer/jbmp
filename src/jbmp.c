@@ -242,7 +242,7 @@ int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b)
   h->magic[0] = 'B';
   h->magic[1] = 'M';
   h->size_of_bmp = (row_size_bytes * b->height) + sizeof(jbmp_header_t);
-  h->resd1 = 0x0DD0FECA;
+  h->resd1 = 0;
   h->bitmap_offset = sizeof(jbmp_header_t);
   h->size_of_header = 0x28;
   
