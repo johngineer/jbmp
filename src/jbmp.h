@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *                                                                          *
-*    jbmp: for reading and writing 24bpp .BMP image files.                 *
+*    jbmp: for reading and writing RGB 24bpp .BMP image files.             *
 *                                                                          *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -48,8 +48,11 @@ int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h);
 jbmp_pixel_t jbmp_get_pixel(jbmp_bitmap_t* b, int x, int y);
 int jbmp_set_pixel(jbmp_bitmap_t* b, int x, int y, jbmp_pixel_t p);
 
-int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, uint8_t v);
-uint8_t jbmp_get_pixel_channel(jbmp_pixel_t p, jbmp_rgb_t channel);
+// 'v' is cast to type uint8_t
+int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, int v);
+
+// returns uint8_t cast to an int.
+int jbmp_get_pixel_channel(jbmp_pixel_t p, jbmp_rgb_t channel);
 
 
 

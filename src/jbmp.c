@@ -225,6 +225,7 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b)
       a += fwrite(&p.g, 1, 1, f);
       a += fwrite(&p.r, 1, 1, f);
     }
+    // insert any row padding bytes
     for (n = 0; n < row_pad_bytes; n++)
     {
       fputc(0, f);
@@ -313,4 +314,47 @@ int jbmp_set_pixel(jbmp_bitmap_t* b, int x, int y, jbmp_pixel_t p)
   
   b->bitmap[p_offset(b->width, x, y)] = p;
   return 1;
+}
+
+// 'v' is cast to type uint8_t
+int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, int v)
+{
+  switch (channel)
+  {
+    case red:
+      p->r = (uint8_t)v;
+      break;
+      
+    case green:
+      p->g = (uint8_t)v;
+      break;
+      
+    case blue:
+      p->b = (uint8_t)v;
+      break;
+  }
+  
+  return (int)channel;
+}
+
+// returns uint8_t cast to an int.
+int jbmp_get_pixel_channel(jbmp_pixel_t p, jbmp_rgb_t channel)
+{
+  uint8_t a;
+  switch (channel)
+  {
+    case red:
+      a = p.r;
+      break;
+      
+    case green:
+      a = p.g;
+      break;
+      
+    case blue:
+      a = p.b;
+      break;
+  }
+  
+  return (int)a;
 }
