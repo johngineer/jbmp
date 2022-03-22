@@ -1,5 +1,4 @@
-// demo.c: demo program for libjbmp:
-//
+// demo.c: demo program for libjbmp
 // https://github.com/johngineer/jbmp
 
 #include <stdio.h>
@@ -64,9 +63,9 @@ int main(void)
   draw_rectangle(&bmp, 0, 128, 128, 128, blu);
   draw_rectangle(&bmp, 128, 128, 128, 128, gry);
   
-  jbmp_write_bmp_file(filename, &bmp);
+  jbmp_write_bmp_file(filename, &bmp, 1);
   
-  jbmp_read_bmp_file(filename, &bmp_inverse);
+  jbmp_read_bmp_file(filename, &bmp_inverse, 1);
   
   bitmap_invert(&bmp_inverse);
   
@@ -75,5 +74,5 @@ int main(void)
   draw_rectangle(&bmp_inverse, 32, 160, 64, 64, blu);
   draw_rectangle(&bmp_inverse, 160, 160, 64, 64, gry);
   
-  jbmp_write_bmp_file(filename2, &bmp_inverse);
+  jbmp_write_bmp_file(filename2, &bmp_inverse, 1);
 }

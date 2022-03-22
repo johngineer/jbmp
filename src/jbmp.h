@@ -8,11 +8,12 @@
 #define JBMP_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include "jbmp_types.h"
 
 #define JBMP_DEBUG                      1
 
-#define JBMP_ERR_FILE_NOT_EXIST         -1
+#define JBMP_ERR_BAD_FILENAME           -1
 #define JBMP_ERR_BAD_FORMAT             -2
 #define JBMP_ERR_SIZE_MISMATCH          -3
 #define JBMP_ERR_BAD_BPP                -4
@@ -38,7 +39,8 @@ int jbmp_read_file_header(FILE* f, jbmp_header_t* header);
 reads the bitmap data from file 'f' and into 'bitmap' and returns the number of
 bytes read.
 ******************************************************************************/
-int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap);
+int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap,
+                          int verbose);
 
 /***** jbmp_read_bmp_file() ***************************************************
 the main read function for reading BMP files; does the following:
@@ -46,7 +48,7 @@ the main read function for reading BMP files; does the following:
 2. initializes 'bitmap' to the required size.
 3. reads the bitmap data into 'bitmap' and closes the file.
 ******************************************************************************/
-int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap);
+int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
 /***** jbmp_write_file_header() ***********************************************
 writes the header data from 'h' to file 'f'
@@ -56,12 +58,12 @@ int jbmp_write_file_header(FILE* f, jbmp_header_t h);
 /***** jbmp_write_file_header() ***********************************************
 writes the bitmap data from 'b' to file 'f'
 ******************************************************************************/
-int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b);
+int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b, int verbose);
 
 /***** jbmp_write_file_bitmap() ***********************************************
 initializes a header struct 'h' based on the dimensions of 'b'
 ******************************************************************************/
-int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b);
+int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b, char* fname);
 
 /***** jbmp_read_bmp_file() ***************************************************
 the main write function for reading BMP files; does the following:
@@ -69,7 +71,7 @@ the main write function for reading BMP files; does the following:
 2. opens/creates a file named 'fname' and writes the header data.
 3. writes the bitmap data from 'bitmap' and closes the file.
 ******************************************************************************/
-int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap);
+int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -80,7 +82,7 @@ int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap);
 reads the bitmap data from file 'f' and into 'bitmap' and returns the number of
 bytes read.
 ******************************************************************************/
-int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h);
+int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h, char* fname);
 
 /***** jbmp_get_pixel ********************************************************
 returns the pixel in 'b' at location given by 'x' and 'y'

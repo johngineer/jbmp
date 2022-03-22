@@ -13,8 +13,10 @@ TODO: add support for 1-bit and greyscale
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <inttypes.h>
+#include <errno.h>
 #include "jbmp.h"
-//#include "jdbg.h"
 
 // FILE OPS
 int jbmp_read_file_header(FILE* f, jbmp_header_t* header)
@@ -24,7 +26,6 @@ int jbmp_read_file_header(FILE* f, jbmp_header_t* header)
   fread(&header->magic[1], 1, 1, f);
   fread(&header->size_of_bmp, 4, 1, f);
   fread(&header->resd1, 4, 1, f);
-  //fread(&header->resd2, 2, 1, f);
   fread(&header->bitmap_offset, 4, 1, f);
   fread(&header->size_of_header, 4, 1, f);
 
@@ -49,10 +50,8 @@ int jbmp_read_file_header(FILE* f, jbmp_header_t* header)
   #ifdef JBMP_DEBUG
   printf("BMP header:\n");
   printf("header->magic = '%c%c'\n", header->magic[0], header->magic[1]);
-  //printf("header->magic = 0x%04X\n", header->magic);
   printf("header->size_of_bmp = %i\n", header->size_of_bmp);
   printf("header->resd1 = %i\n", header->resd1);
-  //printf("header->resd2 = %i\n", header->resd2);
   printf("header->bitmap_offset = %i\n", header->bitmap_offset);
   printf("header->size_of_header = %i\n", header->size_of_header);
   printf("header->width = %i\n", header->width);
@@ -66,21 +65,24 @@ int jbmp_read_file_header(FILE* f, jbmp_header_t* header)
   return fp;
 }
 
-int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap)
+int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap,
+                          int verbose)
 {
   int row_size_bytes = (((header.width*3)+3)/4) * 4;
   int row_pad_bytes = row_size_bytes - (header.width*3);
 
   int a = 0;
   int j, k;
-  int update = header.height / 4;
   int line = 0;
   jbmp_pixel_t p;
 
-  // BMP files store rows from the bottom to the top, so we flip the direction
-  // of the j counter
+  /**** row loop: ****/
+  // bmp files store rows from the bottom to top, so we flip the direction
+  // of the j counter as we read in the bytes.
   for (j = header.height-1; j >= 0; j--)
   {
+    /**** column loop ****/
+    // bmp file pixels are stored from left (position 0) to right.
     for (k = 0; k < header.width; k++)
     {
       a += fread(&p.b, 1, 1, f);
@@ -88,13 +90,27 @@ int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap)
       a += fread(&p.r, 1, 1, f);
       jbmp_set_pixel(bitmap, k, j, p);
     }
+    // lines must be a multiple of 4 bytes in length, so we advance the file 
+    // pointer to make up the difference, if any.
     fseek(f, row_pad_bytes, SEEK_CUR);
+    
+    if (verbose > 0)
+    {
+      if ((line % verbose) == 0)
+      {
+        printf("\r %s : reading line %i / %i", line, header.height);
+      }
+    }
+    
+    // line counter
     line++;
   }
+  if (verbose > 0) printf("\n");
+  
   return a;
 }
 
-int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
+int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose)
 {
   FILE* f;
   jbmp_header_t header;
@@ -102,39 +118,29 @@ int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
   char file_exists = 0;
 
   // check if the file exists
-  if (f = fopen(fname, "r"))
-  {
-    file_exists = 1;
-  }
-  else
+  f = fopen(fname, "r");
+  int err = errno;
+  if (f == NULL)
   {
     #ifdef JBMP_DEBUG
-    fprintf(stderr, "ERROR: file '%s' does not exist!\n", fname);
+    fprintf(stderr, "ERROR: cannot open '%s'; errno = %i\n", fname, errno);
     #endif
     return JBMP_ERR_FILE_NOT_EXIST;
   }
 
   // file exists, so read the header
-  // jd_tag(fsio_open,1,"opened '%s' for reading", fname);
   int c = jbmp_read_file_header(f, &header);
-  // jd_tag(fsio_in,1,"read %i bytes from '%s'",c, fname);
-  // jd_tag(fsio_close,1,"close '%s'", fname);
-  // jd_tag(mesg,1,"read BMP file header. verifying...", c);
   fclose(f);   // close the file while we check the validity
 
   // now that we've read the header, let's verify it's a real .BMP file.
   if (header.magic[0] != 'B' || header.magic[1] != 'M')
-  //if (header.magic == JBMP_MAGIC_NUMBER)
   {
-    // jd_tag(error,1,"'%s' -- bad magic number '%s'", fname, header.magic);
     return JBMP_ERR_BAD_FORMAT;
   }
   else if (header.bpp != 24) // we can only read 24bpp images.
   {
-    // jd_tag(error,1,"'%s' -- cannot read %ibpp bitmap", fname, header.bpp);
     return JBMP_ERR_BAD_BPP;
   }
-  // else { jd_tag(mesg,1,"BMP header verified."); }
 
 
   // avoid memory overflows
@@ -148,13 +154,13 @@ int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
   // now that we have the dimensions of the bitmap, we can initialize a
   // bitmap struct with those parameters
   // jd_tag(mesg,1,"allocating memory for bitmap, %i bytes requested.", size_of_bitmap);
-  c = jbmp_init_bitmap(bitmap, header.width, header.height);
+  c = jbmp_init_bitmap(bitmap, header.width, header.height, fname);
 
   // reopen the file and move the file position to the bitmap data
   // (we don't care about palette stuff -- life in truecolor, baby!)
   f = fopen(fname, "r");
   fseek(f, header.bitmap_offset, SEEK_SET);
-  int a = jbmp_read_file_bitmap(f, header, bitmap);
+  int a = jbmp_read_file_bitmap(f, header, bitmap, 1);
 
   // jd_tag(fsio_in,1,"read %i lines of %i pixels from '%s'", header.height, header.width, fname);
   // jd_tag(mesg,1,"read %i bytes total.", a);
@@ -204,7 +210,7 @@ int jbmp_write_file_header(FILE* f, jbmp_header_t h)
   //return fwrite(h, sizeof(jbmp_header_t), 1, f);
 }
 
-int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b)
+int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b, int verbose)
 {
   int a = 0;
   int j, k, n;
@@ -214,8 +220,9 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b)
   int row_size_bytes = (((b->width*3)+3)/4) * 4;
   int row_pad_bytes = row_size_bytes - (b->width*3);
 
-  // BMP files store rows from the bottom to the top, so we flip the direction
-  // of the j counter
+  /**** row loop: ****/
+  // bmp files store rows from the bottom to top, so we flip the direction
+  // of the j counter as we write out the bytes.
   for (j = b->height-1; j >= 0; j--)
   {
     for (k = 0; k < b->width; k++)
@@ -231,6 +238,15 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b)
       fputc(0, f);
       a++;
     }
+    
+    if (verbose > 0)
+    {
+      if ((line % verbose) == 0)
+      {
+        printf("\rreading line %i/%i", line+1, b->height);
+      }
+    }
+    
     line++;
   }
   return a;
@@ -257,20 +273,28 @@ int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b)
   h->y_pixels_per_m = 11811; 
   h->colors_used = 0;
   h->important_colors = 0;
-  
+
+  if (fname != NULL)
+  {
+    int len = (int)strlen(fname)+1;
+    b->filename = malloc(len);
+    strcpy(b->filename, fname);
+  }
+
   return 1;
 }
 
-int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
+int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose)
 {
   jbmp_header_t header;
-  jbmp_init_header(&header, bitmap);
-  
-  FILE* f = fopen(fname, "w");
+  jbmp_init_header(&header, bitmap, fname);
+  FILE* f;
+
+  f = fopen(fname, "w");
   jbmp_write_file_header(f, header);
   
   fseek(f, header.bitmap_offset, SEEK_SET);
-  jbmp_write_file_bitmap(f, bitmap);
+  jbmp_write_file_bitmap(f, bitmap, 1);
   
   fclose(f);
 }
@@ -278,7 +302,7 @@ int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap)
 
 
 // BITMAP OPS
-int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h)
+int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h, char* fname)
 {
   b->width = (uint32_t)w;
   b->height = (uint32_t)h;

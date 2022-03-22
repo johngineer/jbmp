@@ -1,10 +1,14 @@
 # jbmp
 
-for reading and writing 24bpp .BMP image file
+for reading and writing 24bpp RGB .BMP image files
 
 --------------------------------------------------------------------------------
 
-_this library uses C99 standard libraries_
+dependencies:
+
+- C99 standard library (glibc)
+
+--------------------------------------------------------------------------------
 
 to install on linux:
 

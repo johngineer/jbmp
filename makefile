@@ -1,11 +1,11 @@
 # jbmp library :: makefile
 #
-# https://github.com/johngineer/mword
+# https://github.com/johngineer/jbmp
 #
 # build instructions:
 #
 #   1. "make clean" (only required for rebuild)
-#   2. "make" or "make libmword"
+#   2. "make" or "make libjbmp"
 #
 # installation:
 #
@@ -36,12 +36,10 @@ libjbmp: $(ofiles)
 				ar rcs lib$(libname).a $(obj)*.o
 
 pathcheck: $(obj) $(mesg)
-				rmdir $(obj)
-				rmdir $(mesg)
 				mkdir $(obj)
 				mkdir $(mesg)
 
-# functions from mword_err.h
+# functions from jbmp.h
 jbmp.o: $(src)jbmp.c $(src)jbmp.h $(src)jbmp_types.h
 				gcc $(opts) $(diag) -o $(obj)jbmp.o $(src)jbmp.c 2> $(mesg)jbmp.$(msgext)
 
@@ -64,10 +62,6 @@ install: libjbmp.a
 				install -d $(DESTDIR)$(PREFIX)/include/$(libname)/
 				install -m 644 $(src)*.h $(DESTDIR)$(PREFIX)/include/$(libname)/
 
-# the mword demo program (mword library must be installed)
+# the jbmp demo program (libjbmp must be installed or this will fail to build)
 demo: demo.c /usr/local/lib/libjbmp.a
 				gcc -I. $(diag) -o demo demo.c -ljbmp 2> $(mesg)demo.$(msgext)
-
-# the mword demo program (uses the local copy of libmword.a)
-#demolocal: demo.c libmword.a
-#				gcc -I. $(diag) -o demo demo.c -L. -lmword 2> $(mesg)demo.$(msgext)
