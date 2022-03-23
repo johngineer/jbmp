@@ -41,7 +41,7 @@
  returns (int) ------------- the number of bytes read.
  
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int jbmp_read_file_header(FILE* f, jbmp_header_t* header, int verbose);
+int jbmp_read_file_header(FILE* f, jbmp_header_t* h, int verbose);
 
 
 /* * * jbmp_read_file_bitmap() * * * * * * * * * * * * * * * * * * * * * * * *
@@ -66,7 +66,8 @@ int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap,
 /* * * jbmp_read_file_bitmap() * * * * * * * * * * * * * * * * * * * * * * * *
 
 the main read function for reading BMP files; does the following:
-  1. opens the file, reads the header data, and confirms it is a valid BMP file.
+  1. opens the file, reads the header data, and confirms it is a valid BMP 
+     file.
   2. initializes 'bitmap' to the required size.
   3. reads the bitmap data into 'bitmap' and closes the file.
  
@@ -80,10 +81,21 @@ the main read function for reading BMP files; does the following:
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_read_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
-/***** jbmp_write_file_header() ***********************************************
+
+/* * * jbmp_write_file_header()  * * * * * * * * * * * * * * * * * * * * * * *
+
 writes the header data from 'h' to file 'f'
-******************************************************************************/
-int jbmp_write_file_header(FILE* f, jbmp_header_t h);
+
+ FILE* f ------------------- the file pointer
+ jbmp_header_t header ------ the header struct we fill with data from the
+                               file.
+
+ returns (int):
+   on failure: an error code
+   on success: the number of bytes written
+   
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+int jbmp_write_file_header(FILE* f, jbmp_header_t h, int verbose);
 
 /***** jbmp_write_file_header() ***********************************************
 writes the bitmap data from 'b' to file 'f'

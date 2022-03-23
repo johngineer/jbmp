@@ -22,47 +22,47 @@ TODO: add support for 1-bit and greyscale
  *                               FILE HANDLING                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int jbmp_read_file_header(FILE* f, jbmp_header_t* header, int verbose)
+int jbmp_read_file_header(FILE* f, jbmp_header_t* h, int verbose)
 {
   int fp = ftell(f);
-  fread(&header->magic[0], 1, 1, f);
-  fread(&header->magic[1], 1, 1, f);
-  fread(&header->size_of_bmp, 4, 1, f);
-  fread(&header->resd1, 4, 1, f);
-  fread(&header->bitmap_offset, 4, 1, f);
-  fread(&header->size_of_header, 4, 1, f);
+  fread(&h->magic[0], 1, 1, f);
+  fread(&h->magic[1], 1, 1, f);
+  fread(&h->size_of_bmp, 4, 1, f);
+  fread(&h->resd1, 4, 1, f);
+  fread(&h->bitmap_offset, 4, 1, f);
+  fread(&h->size_of_header, 4, 1, f);
 
-  if (header->size_of_header >= 40)   // indicates newer header
+  if (h->size_of_header >= 40)   // indicates newer header
   {
-    fread(&header->width, 4, 1, f);
-    fread(&header->height, 4, 1, f);
-    fread(&header->cplanes, 2, 1, f);
-    fread(&header->bpp, 2, 1, f);
-    fread(&header->comp_method, 4, 1, f);
+    fread(&h->width, 4, 1, f);
+    fread(&h->height, 4, 1, f);
+    fread(&h->cplanes, 2, 1, f);
+    fread(&h->bpp, 2, 1, f);
+    fread(&h->comp_method, 4, 1, f);
   }
   else
   {
-    fread(&header->width, 2, 1, f);
-    fread(&header->height, 2, 1, f);
-    fread(&header->cplanes, 2, 1, f);
-    fread(&header->bpp, 2, 1, f);
+    fread(&h->width, 2, 1, f);
+    fread(&h->height, 2, 1, f);
+    fread(&h->cplanes, 2, 1, f);
+    fread(&h->bpp, 2, 1, f);
   }
 
   fp = ftell(f) - fp;
   
   if (verbose>0)
   {
-    printf("BMP header:\n");
-    printf("header->magic = '%c%c'\n", header->magic[0], header->magic[1]);
-    printf("header->size_of_bmp = %i\n", header->size_of_bmp);
-    printf("header->resd1 = %i\n", header->resd1);
-    printf("header->bitmap_offset = %i\n", header->bitmap_offset);
-    printf("header->size_of_header = %i\n", header->size_of_header);
-    printf("header->width = %i\n", header->width);
-    printf("header->height = %i\n", header->height);
-    printf("header->cplanes = %i\n", header->cplanes);
-    printf("header->bpp = %i\n", header->bpp);
-    printf("header->comp_method = %i\n", header->comp_method);
+    printf("read BMP header:\n");
+    printf("  magic = '%c%c'\n", h->magic[0], h->magic[1]);
+    printf("  size_of_bmp = %i\n", h->size_of_bmp);
+    printf("  resd1 = %i\n", h->resd1);
+    printf("  bitmap_offset = %i\n", h->bitmap_offset);
+    printf("  size_of_header = %i\n", h->size_of_header);
+    printf("  width = %i\n", h->width);
+    printf("  height = %i\n", h->height);
+    printf("  cplanes = %i\n", h->cplanes);
+    printf("  bpp = %i\n", h->bpp);
+    printf("  comp_method = %i\n", h->comp_method);
     printf("\n");
   }
   
@@ -99,19 +99,15 @@ int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap,
     // pointer to make up the difference, if any.
     fseek(f, row_pad_bytes, SEEK_CUR);
     
-    if (verbose > 0)
+    if (verbose > 0 && line % verbose == 0)
     {
-      if ((line % verbose) == 0)
-      {
-        printf("\r %s : reading line %i / %i", 
-                bitmap->filename, line, header.height);
-      }
+      printf("\rreading line %i / %i", line, header.height-1);
     }
     
     // line counter
     line++;
   }
-  if (verbose > 0) printf("\n");
+  if (verbose > 0) printf("... done.\n\n");
   
   
   return a;
@@ -185,7 +181,7 @@ int jbmp_read_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose)
   }
   else 
   {
-    if (verbose>0) printf("BMP read: allocated %i bytes for bitmap.", c);
+    if (verbose>0) printf("BMP read: allocated %i bytes for bitmap.\n", c);
   }
 
   // reopen the file and move the file position to the bitmap data
@@ -206,7 +202,7 @@ int jbmp_read_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose)
   return fp;
 }
 
-int jbmp_write_file_header(FILE* f, jbmp_header_t h)
+int jbmp_write_file_header(FILE* f, jbmp_header_t h, int verbose)
 {
   // INTRO HEADER
   fwrite(h.magic, 2, 1, f);
@@ -228,7 +224,21 @@ int jbmp_write_file_header(FILE* f, jbmp_header_t h)
   fwrite(&h.colors_used, 4, 1, f);
   fwrite(&h.important_colors, 4, 1, f);
   
-  
+  if (verbose>0)
+  {
+    printf("wrote BMP header:\n");
+    printf("  magic = '%c%c'\n", h.magic[0], h.magic[1]);
+    printf("  size_of_bmp = %i\n", h.size_of_bmp);
+    printf("  resd1 = %i\n", h.resd1);
+    printf("  bitmap_offset = %i\n", h.bitmap_offset);
+    printf("  size_of_header = %i\n", h.size_of_header);
+    printf("  width = %i\n", h.width);
+    printf("  height = %i\n", h.height);
+    printf("  cplanes = %i\n", h.cplanes);
+    printf("  bpp = %i\n", h.bpp);
+    printf("  comp_method = %i\n", h.comp_method);
+    printf("\n");
+  }
   //return fwrite(h, sizeof(jbmp_header_t), 1, f);
 }
 
@@ -261,17 +271,14 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b, int verbose)
       a++;
     }
     
-    if (verbose > 0)
+    if (verbose > 0 && line % verbose == 0)
     {
-      if ((line % verbose) == 0)
-      {
-        printf("\rreading line %i/%i...", line+1, b->height);
-      }
+      printf("\rwriting line %i / %i", line, b->height-1);
     }
     
     line++;
   }
-  printf(" done. \n");
+  printf("... done. \n\n");
   return a;
 }
 
@@ -310,14 +317,24 @@ int jbmp_write_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose)
   // if a filename is given use that
   // otherwise, if there's one associated with the bitmap, use that
   // otherwise, fail :(
-  if (fname == NULL)
-  {
-    if (bitmap->filename != NULL) { f = fopen(fname, "w"); }
-    else return JBMP_ERR_BAD_FILENAME;
-  }
-  else { f = fopen(fname, "w"); }
+  // if (fname == NULL)
+  // {
+  //   if (bitmap->filename != NULL) { f = fopen(fname, "w"); }
+  //   else return JBMP_ERR_BAD_FILENAME;
+  // }
+  // else { f = fopen(fname, "w"); }
   
-  jbmp_write_file_header(f, header);
+  f = fopen(fname, "w");
+  
+  if (f == NULL)
+  {
+    printf("BMP write err: cannot open '%s' for writing.\n", fname);
+    return JBMP_ERR_BAD_FILENAME;
+  }
+  
+  if (verbose>0) printf("opened %s for writing.\n", fname);
+  
+  jbmp_write_file_header(f, header, 1);
   
   fseek(f, header.bitmap_offset, SEEK_SET);
   jbmp_write_file_bitmap(f, bitmap, 1);
@@ -346,12 +363,12 @@ int jbmp_init_bitmap(jbmp_bitmap_t* b, int w, int h, char* fname)
   if (b->bitmap == NULL) return JBMP_ERR_NOMEM;
   else return b->size_bytes;
   
-  if (fname != NULL)
-  {
+  // if (fname != NULL)
+  // {
     int len = (int)strlen(fname)+1;
     b->filename = malloc(len);
     strncpy(b->filename, fname, len);
-  }
+  //}
 }
 
 int p_offset(int w, int x, int y)
@@ -380,7 +397,6 @@ int jbmp_set_pixel(jbmp_bitmap_t* b, int x, int y, jbmp_pixel_t p)
   return 1;
 }
 
-// 'v' is cast to type uint8_t
 int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, int v)
 {
   switch (channel)
@@ -401,7 +417,6 @@ int jbmp_set_pixel_channel(jbmp_pixel_t* p, jbmp_rgb_t channel, int v)
   return (int)channel;
 }
 
-// returns uint8_t cast to an int.
 int jbmp_get_pixel_channel(jbmp_pixel_t p, jbmp_rgb_t channel)
 {
   uint8_t a;
