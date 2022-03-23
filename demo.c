@@ -46,33 +46,44 @@ int bitmap_invert(jbmp_bitmap_t* b)
 
 char filename[] = "demo.bmp";
 char filename2[] = "demo_inverse.bmp";
-jbmp_bitmap_t bmp, bmp_inverse;
+
 
 int main(void)
 {
-  jbmp_init_bitmap(&bmp, 256, 256);
+  // declare a couple bitmap structs
+  jbmp_bitmap_t bmp1, bmp2;
   
-  jbmp_pixel_t red = { 0x00, 0x00, 0xFF };
-  jbmp_pixel_t grn = { 0x00, 0xFF, 0x00 };
-  jbmp_pixel_t blu = { 0xFF, 0x00, 0x00 };
-  jbmp_pixel_t gry = { 0x40, 0x40, 0x40 };
+  // intialize bitmap 'bmp1' to 256x256 pixels
+  jbmp_init_bitmap(&bmp1, 256, 256, filename);
   
+  // define some colors
+  jbmp_pixel_t red = jbmp_rgb(0x00, 0x00, 0xFF);
+  jbmp_pixel_t grn = jbmp_rgb(0x00, 0xFF, 0x00);
+  jbmp_pixel_t blu = jbmp_rgb(0xFF, 0x00, 0x00);
+  jbmp_pixel_t gry = jbmp_rgb(0x40, 0x40, 0x40);
   
-  draw_rectangle(&bmp, 0, 0, 128, 128, red);
-  draw_rectangle(&bmp, 128, 0, 128, 128, grn);
-  draw_rectangle(&bmp, 0, 128, 128, 128, blu);
-  draw_rectangle(&bmp, 128, 128, 128, 128, gry);
+  // draw some colored boxes
+  draw_rectangle(&bmp1, 0, 0, 128, 128, red);
+  draw_rectangle(&bmp1, 128, 0, 128, 128, grn);
+  draw_rectangle(&bmp1, 0, 128, 128, 128, blu);
+  draw_rectangle(&bmp1, 128, 128, 128, 128, gry);
   
-  jbmp_write_bmp_file(filename, &bmp, 1);
+  // write the first bitmap out to 'filename'
+  jbmp_write_bmp_file(filename, &bmp1, 1);
   
-  jbmp_read_bmp_file(filename, &bmp_inverse, 1);
+  // read the bitmap in 'filename' into bitmap 'bmp2'.
+  // 'bmp2' is auto-init'd based on the info read from the file.
+  jbmp_read_bmp_file(filename, &bmp2, 1);
   
-  bitmap_invert(&bmp_inverse);
+  // invert the contents of 'bmp_inverse'
+  bitmap_invert(&bmp2);
   
-  draw_rectangle(&bmp_inverse, 32, 32, 64, 64, red);
-  draw_rectangle(&bmp_inverse, 160, 32, 64, 64, grn);
-  draw_rectangle(&bmp_inverse, 32, 160, 64, 64, blu);
-  draw_rectangle(&bmp_inverse, 160, 160, 64, 64, gry);
+  // draw some smaller rectangles on top of the image
+  draw_rectangle(&bmp2, 32, 32, 64, 64, red);
+  draw_rectangle(&bmp2, 160, 32, 64, 64, grn);
+  draw_rectangle(&bmp2, 32, 160, 64, 64, blu);
+  draw_rectangle(&bmp2, 160, 160, 64, 64, gry);
   
-  jbmp_write_bmp_file(filename2, &bmp_inverse, 1);
+  // write 'bmp2' out to 'filename2'
+  jbmp_write_bmp_file(filename2, &bmp2, 1);
 }

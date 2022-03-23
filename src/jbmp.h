@@ -11,44 +11,74 @@
 #include <stdbool.h>
 #include "jbmp_types.h"
 
-#define JBMP_DEBUG                      1
+#define JBMP_DEBUG                       1
 
 #define JBMP_ERR_BAD_FILENAME           -1
-#define JBMP_ERR_BAD_FORMAT             -2
-#define JBMP_ERR_SIZE_MISMATCH          -3
-#define JBMP_ERR_BAD_BPP                -4
+#define JBMP_ERR_BAD_MAGIC              -2
+#define JBMP_ERR_BAD_FORMAT             -3 
+#define JBMP_ERR_SIZE_MISMATCH          -4
 #define JBMP_ERR_BITMAP_TOO_BIG         -5
-#define JBMP_ERR_BADMEM                 -6
+#define JBMP_ERR_NOMEM                  -6
 
 #define JBMP_MAGIC_NUMBER               "BM"
  
-
-#define JBMP_MAX_BITMAP_SIZE            0x0FFFFFFF
+#define JBMP_MAX_BITMAP_SIZE            0x1FFFFFFF // in bytes, about 500Mb
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                             FILE HANDLING                                 *
+ * * * * * * * * * * * * * * * FILE HANDLING * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/***** jbmp_read_file_header() ************************************************
-reads the header from file 'f' and into 'header' returns the number of bytes
-read.
-******************************************************************************/
-int jbmp_read_file_header(FILE* f, jbmp_header_t* header);
+/* * * jbmp_read_file_header() * * * * * * * * * * * * * * * * * * * * * * * *
+ 
+ reads the header from file 'f' and into 'header' returns the number of bytes
+ read.
+ 
+ FILE* f ------------------- the file pointer
+ jbmp_header_t* header ----- pointer to the header struct that we fill with
+                               data from the file.
+ int verbose --------------- verbosity flag (0 = silent, >=1 = loud)
+ 
+ returns (int) ------------- the number of bytes read.
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+int jbmp_read_file_header(FILE* f, jbmp_header_t* header, int verbose);
 
-/***** jbmp_read_file_bitmap() ************************************************
-reads the bitmap data from file 'f' and into 'bitmap' and returns the number of
-bytes read.
-******************************************************************************/
+
+/* * * jbmp_read_file_bitmap() * * * * * * * * * * * * * * * * * * * * * * * *
+ 
+ reads the bitmap data from file 'f' and into 'bitmap' and returns the number
+ of bytes read.
+ 
+ FILE* f ------------------- the file pointer
+ jbmp_header_t header ------ the header struct we fill with data from the
+                               file.
+ jbmp_bitmap_t* bitmap ----- pointer to the bitmap struct where we put the 
+                               bitmap data from the file.
+ int verbose --------------- verbosity flag (0 = silent, >=1 = loud).
+ 
+ returns (int) ------------- the number of bytes read
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_read_file_bitmap(FILE* f, jbmp_header_t header, jbmp_bitmap_t* bitmap,
                           int verbose);
 
-/***** jbmp_read_bmp_file() ***************************************************
+
+/* * * jbmp_read_file_bitmap() * * * * * * * * * * * * * * * * * * * * * * * *
+
 the main read function for reading BMP files; does the following:
-1. opens the file, reads the header data, and confirms it is a valid BMP file.
-2. initializes 'bitmap' to the required size.
-3. reads the bitmap data into 'bitmap' and closes the file.
-******************************************************************************/
-int jbmp_read_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose);
+  1. opens the file, reads the header data, and confirms it is a valid BMP file.
+  2. initializes 'bitmap' to the required size.
+  3. reads the bitmap data into 'bitmap' and closes the file.
+ 
+ char* fname --------------- the string containing the file name.
+ jbmp_bitmap_t* bitmap ----- pointer to the bitmap struct where we put the 
+                               bitmap data from the file.
+ int verbose --------------- verbosity flag (0 = silent, >=1 = loud).
+ 
+ returns (int) ------------- the number of bytes read
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+int jbmp_read_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
 /***** jbmp_write_file_header() ***********************************************
 writes the header data from 'h' to file 'f'
@@ -63,7 +93,7 @@ int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b, int verbose);
 /***** jbmp_write_file_bitmap() ***********************************************
 initializes a header struct 'h' based on the dimensions of 'b'
 ******************************************************************************/
-int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b, char* fname);
+int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b);
 
 /***** jbmp_read_bmp_file() ***************************************************
 the main write function for reading BMP files; does the following:
@@ -71,12 +101,14 @@ the main write function for reading BMP files; does the following:
 2. opens/creates a file named 'fname' and writes the header data.
 3. writes the bitmap data from 'bitmap' and closes the file.
 ******************************************************************************/
-int jbmp_write_bmp_file(const char* fname, jbmp_bitmap_t* bitmap, int verbose);
+int jbmp_write_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                           BITMAP HANDLING                                 *
+ * * * * * * * * * * * * * BITMAP & PIXEL HANDLING * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ 
+ jbmp_pixel_t jbmp_rgb(uint8_t r, uint8_t g, uint8_t b);
 
 /***** jbmp_init_bitmap() ************************************************
 reads the bitmap data from file 'f' and into 'bitmap' and returns the number of
