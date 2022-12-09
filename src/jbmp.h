@@ -2,6 +2,8 @@
  *                                                                           *
  *    jbmp: for reading and writing RGB 24bpp .BMP image files.              *
  *                                                                           *
+ *    https://github.com/johngineer/jbmp                                     *
+ *                                                                           *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef JBMP_H
@@ -25,8 +27,9 @@
 #define JBMP_MAX_BITMAP_SIZE            0x1FFFFFFF // in bytes, about 500Mb
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * * * * * * * * * * * * * * * FILE HANDLING * * * * * * * * * * * * * * * * *
+ * ============================ FILE HANDLING ============================== *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 
 /* * * jbmp_read_file_header() * * * * * * * * * * * * * * * * * * * * * * * *
  
@@ -97,27 +100,56 @@ writes the header data from 'h' to file 'f'
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_write_file_header(FILE* f, jbmp_header_t h, int verbose);
 
-/***** jbmp_write_file_header() ***********************************************
-writes the bitmap data from 'b' to file 'f'
-******************************************************************************/
+
+/* * * jbmp_write_file_bitmap()  * * * * * * * * * * * * * * * * * * * * * * *
+ 
+ reads the bitmap data from file 'f' and into 'bitmap' and returns the number
+ of bytes read.
+ 
+ FILE* f ------------------- the file pointer
+ jbmp_bitmap_t* b ---------- pointer to the bitmap struct where we put the 
+                               bitmap data from the file.
+ int verbose --------------- verbosity flag (0 = silent, >=1 = loud).
+ 
+ returns (int) ------------- the number of bytes written
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_write_file_bitmap(FILE* f, jbmp_bitmap_t* b, int verbose);
 
-/***** jbmp_write_file_bitmap() ***********************************************
-initializes a header struct 'h' based on the dimensions of 'b'
-******************************************************************************/
+
+/* * * jbmp_init_header()  * * * * * * * * * * * * * * * * * * * * * * * * * *
+ 
+ initializes a header struct 'h' based on the dimensions of bitmap struct 'b'
+
+ jbmp_header_t* h ---------- pointer to the header struct.
+ jbmp_header_t* b ---------- pointer to the bitmap struct.
+
+ returns (int) ------------ =1 on success.
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_init_header(jbmp_header_t* h, jbmp_bitmap_t* b);
 
-/***** jbmp_read_bmp_file() ***************************************************
-the main write function for reading BMP files; does the following:
-1. generates a header struct based on the dimensions of 'b'
-2. opens/creates a file named 'fname' and writes the header data.
-3. writes the bitmap data from 'bitmap' and closes the file.
-******************************************************************************/
+
+/* * * jbmp_read_file_bitmap() * * * * * * * * * * * * * * * * * * * * * * * *
+
+the main read function for reading BMP files; does the following:
+  1. generates a header struct based on the dimensions of 'b'.
+  2. opens/creates a file named 'fname' and writes the header data..
+  3. writes the bitmap data from 'bitmap' and closes the file.
+ 
+ char* fname --------------- the string containing the file name.
+ jbmp_bitmap_t* bitmap ----- pointer to the bitmap struct where we get the
+                               bitmap data to write into the file.
+ int verbose --------------- verbosity flag (0 = silent, >=1 = loud).
+ 
+ returns (int) ------------- the number of bytes written.
+ 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int jbmp_write_bmp_file(char* fname, jbmp_bitmap_t* bitmap, int verbose);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * * * * * * * * * * * * * BITMAP & PIXEL HANDLING * * * * * * * * * * * * * *
+ * ======================== BITMAP & PIXEL HANDLING ======================== *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
  
  jbmp_pixel_t jbmp_rgb(uint8_t r, uint8_t g, uint8_t b);
